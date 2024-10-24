@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "510548844181",
+    "project_id": "testing-39754",
+    "storage_bucket": "testing-39754.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:510548844181:android:b4b4a1f0688423c35cc59c",
+        "android_client_info": {
+          "package_name": "com.example.fire"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAG31gRnPr6tX-xqo6VUxmx6xuG9HtnNVw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:510548844181:android:04a23c31748487f75cc59c",
+        "android_client_info": {
+          "package_name": "com.messi.goat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAG31gRnPr6tX-xqo6VUxmx6xuG9HtnNVw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
