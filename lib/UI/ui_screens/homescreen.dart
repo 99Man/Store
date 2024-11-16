@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   MaterialPageRoute(builder: (context) => Login()),
                 );
               }).onError((error, stacktrace) {
-                Utils().fluttertoastmessage(error.toString());
+                Utilred().fluttertoastmessage(error.toString());
               });
             },
             icon: const Icon(
@@ -247,9 +247,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         "description": _descriptionController.text,
                         "company": _companyController.text
                       }).then((value) {
-                        Utils().fluttertoastmessage("Update Successfully");
+                        Utilgreen().fluttertoastmessage("Update Successfully");
                       }).onError((error, stacktrace) {
-                        Utils().fluttertoastmessage(error.toString());
+                        Utilred().fluttertoastmessage(error.toString());
                       });
                     },
                     child: Text("Update")),

@@ -1,10 +1,12 @@
 import 'package:fire/UI/auth/login.dart';
+import 'package:fire/UI/ui_screens/verify_by_phone.dart';
+import 'package:fire/provider/auth_provider.dart';
 import 'package:fire/utils/utils.dart';
 import 'package:fire/widget/button.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fire/widget/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -15,10 +17,8 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
   final _formkey = GlobalKey<FormState>();
-  TextEditingController _email = TextEditingController();
-  TextEditingController _password = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _password = TextEditingController();
   bool loading = false;
 
   @override
@@ -28,127 +28,161 @@ class _SignUpState extends State<SignUp> {
     _password.dispose();
   }
 
-  void signUp() {
+  void signUp(BuildContext context) async {
     setState(() {
       loading = true;
     });
-    if (_formkey.currentState!.validate()) {}
-    _auth
-        .createUserWithEmailAndPassword(
-            email: _email.text.toString(), password: _password.text.toString())
-        .then((value) async {
+
+    if (_formkey.currentState!.validate()) {
+      // Use the AuthProvider to sign up
+      await Provider.of<AuthProvider>(context, listen: false).signUp(
+        _email.text.trim(),
+        _password.text.trim(),
+      );
+
+      final user = Provider.of<AuthProvider>(context, listen: false).user;
+      if (user != null) {
+        Utilgreen().fluttertoastmessage("SignUp successfully");
+      } else {
+        Utilred().fluttertoastmessage("Error signing up");
+      }
+
       setState(() {
         loading = false;
       });
-      String idToken = await _auth.currentUser!.getIdToken() ?? '';
-      Utils().fluttertoastmessage("User ID Token: $idToken");
-      Utils().fluttertoastmessage("SignUp successfully");
-    }).onError((error, stackTrace) {
-      Utils().fluttertoastmessage(error.toString());
+    } else {
       setState(() {
         loading = false;
       });
-    });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    print("signup rebuild");
     return Scaffold(
-        body: SingleChildScrollView(
-      padding: EdgeInsets.symmetric(vertical: 200),
-      child: Padding(
-        padding: const EdgeInsets.all(30.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              child: Column(
-                children: [
-                  Text(
-                    "CREATE",
-                    style: GoogleFonts.prata(
-                        fontSize: 25, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Text(
-                    "YOUR ACCOUNT",
-                    style: GoogleFonts.prata(
-                        fontSize: 25, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-            Form(
-                key: _formkey,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 200),
+        child: Padding(
+          padding: const EdgeInsets.all(30.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    TextFormField(
-                      keyboardType: TextInputType.emailAddress,
-                      controller: _email,
-                      decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.email),
-                          hintText: "Email",
-                          helperText: "Enter Email e.g email@gmail.com"),
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return "Enter Email";
-                        }
-                        return null;
-                      },
+                    Text(
+                      "CREATE",
+                      style: GoogleFonts.prata(
+                          fontSize: 25, fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(
-                      height: 10,
+                    const SizedBox(
+                      height: 5,
                     ),
-                    TextFormField(
-                      keyboardType: TextInputType.text,
-                      obscureText: true,
-                      controller: _password,
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.password),
-                        hintText: "Password",
-                      ),
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return "Enter Password";
-                        }
-                        return null;
-                      },
+                    Text(
+                      "YOUR ACCOUNT",
+                      style: GoogleFonts.prata(
+                          fontSize: 25, fontWeight: FontWeight.bold),
                     ),
                   ],
-                )),
-            SizedBox(
-              height: 50,
-            ),
-            Button(
+                ),
+              ),
+              Form(
+                  key: _formkey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextFormField(
+                        keyboardType: TextInputType.emailAddress,
+                        controller: _email,
+                        decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.email),
+                            hintText: "Email",
+                            helperText: "Enter Email e.g email@gmail.com"),
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return "Enter Email";
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      TextFormField(
+                        keyboardType: TextInputType.text,
+                        obscureText: true,
+                        controller: _password,
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.password),
+                          hintText: "Password",
+                        ),
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return "Enter Password";
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  )),
+              const SizedBox(
+                height: 50,
+              ),
+              Button(
                 loading: loading,
                 title: "Sign up",
                 onTap: () {
-                  signUp();
-                }),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Already have an account ?"),
-                TextButton(
+                  signUp(context);
+                },
+              ),
+              const SizedBox(
+                height: 12,
+              ),
+              GoogleButton(context),
+              const SizedBox(
+                height: 12,
+              ),
+              NetworkImageButton(
+                  icon: Icons.apple,
+                  buttonText: "SignUp with Apple account",
+                  onPressed: () {}),
+              const SizedBox(
+                height: 12,
+              ),
+              NetworkImageButton(
+                  icon: Icons.phone,
+                  buttonText: "SignUp with phone number",
                   onPressed: () {
-                    Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: (context) => const Login()));
-                  },
-                  child: const Text(
-                    "Login",
-                    style: TextStyle(color: Colors.black),
-                  ),
-                )
-              ],
-            )
-          ],
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const VerifyByPhone()));
+                  }),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Already have an account ?"),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const Login()));
+                    },
+                    child: const Text(
+                      "Login",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  )
+                ],
+              )
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 }

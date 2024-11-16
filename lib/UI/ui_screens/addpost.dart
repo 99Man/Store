@@ -89,19 +89,19 @@ class _AddPostState extends State<AddPost> {
                       setState(() {
                         loading = false;
                       });
-                      Utils().fluttertoastmessage("Post Added");
+                      Utilgreen().fluttertoastmessage("Post Added");
                     }).onError((error, stacktrace) {
                       setState(() {
                         loading = false;
                       });
-                      Utils().fluttertoastmessage(error.toString());
+                      Utilred().fluttertoastmessage(error.toString());
                     });
                     Navigator.pop(context);
                   } else {
                     setState(() {
                       loading = false;
                     });
-                    Utils().fluttertoastmessage("Fill every textfield");
+                    Utilred().fluttertoastmessage("Fill every textfield");
                   }
                 },
                 title: "Add Post",

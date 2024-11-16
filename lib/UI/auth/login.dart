@@ -1,10 +1,12 @@
 import 'package:fire/UI/auth/signup.dart';
 import 'package:fire/firestore/fetchdatafromfirestore.dart';
+import 'package:fire/provider/auth_provider.dart';
 import 'package:fire/utils/utils.dart';
 import 'package:fire/widget/button.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fire/widget/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -17,7 +19,6 @@ class _LoginState extends State<Login> {
   final _formkey = GlobalKey<FormState>();
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   bool loading = false;
 
   @override
@@ -34,21 +35,16 @@ class _LoginState extends State<Login> {
 
     if (_formkey.currentState!.validate()) {
       try {
-        UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-          email: _email.text.trim(),
-          password: _password.text.trim(),
-        );
-
-        String? idToken = await userCredential.user!.getIdToken();
-
-        Utils().fluttertoastmessage("User ID Token: $idToken");
-
+        // Use the AuthProvider to sign in
+        await Provider.of<AuthProvider>(context, listen: true)
+            .signInWithEmailAndPassword(_email.text, _password.text);
+        Utilgreen().fluttertoastmessage("Login Successful");
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => Fetchdatafromfirestore()),
         );
       } catch (error) {
-        Utils().fluttertoastmessage(error.toString());
+        Utilred().fluttertoastmessage("Authentication failed: $error");
       } finally {
         setState(() {
           loading = false;
@@ -63,9 +59,10 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
+    print("rebuild login");
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.all(30.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -130,12 +127,16 @@ class _LoginState extends State<Login> {
             ),
             const SizedBox(height: 50),
             Button(
-              title: "Login",
               loading: loading,
+              title: "Login",
               onTap: () {
                 login();
               },
             ),
+            SizedBox(
+              height: 20,
+            ),
+            GoogleButton(context),
             Align(
               alignment: Alignment.bottomCenter,
               child: Row(

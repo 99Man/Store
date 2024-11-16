@@ -46,6 +46,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '510548844181',
     projectId: 'testing-39754',
     authDomain: 'testing-39754.firebaseapp.com',
+    databaseURL: 'https://testing-39754-default-rtdb.firebaseio.com',
     storageBucket: 'testing-39754.appspot.com',
     measurementId: 'G-ZME75MZZBY',
   );
@@ -55,6 +56,7 @@ class DefaultFirebaseOptions {
     appId: '1:510548844181:android:04a23c31748487f75cc59c',
     messagingSenderId: '510548844181',
     projectId: 'testing-39754',
+    databaseURL: 'https://testing-39754-default-rtdb.firebaseio.com',
     storageBucket: 'testing-39754.appspot.com',
   );
 
@@ -63,7 +65,10 @@ class DefaultFirebaseOptions {
     appId: '1:510548844181:ios:298b2f07bd1c048f5cc59c',
     messagingSenderId: '510548844181',
     projectId: 'testing-39754',
+    databaseURL: 'https://testing-39754-default-rtdb.firebaseio.com',
     storageBucket: 'testing-39754.appspot.com',
+    androidClientId: '510548844181-0ctv9lk8vie3jnlmb8h9ukdu8rqup61m.apps.googleusercontent.com',
+    iosClientId: '510548844181-ibthu374eq40dia3orpvm2rtada74rvb.apps.googleusercontent.com',
     iosBundleId: 'com.example.fire',
   );
 
@@ -72,7 +77,10 @@ class DefaultFirebaseOptions {
     appId: '1:510548844181:ios:298b2f07bd1c048f5cc59c',
     messagingSenderId: '510548844181',
     projectId: 'testing-39754',
+    databaseURL: 'https://testing-39754-default-rtdb.firebaseio.com',
     storageBucket: 'testing-39754.appspot.com',
+    androidClientId: '510548844181-0ctv9lk8vie3jnlmb8h9ukdu8rqup61m.apps.googleusercontent.com',
+    iosClientId: '510548844181-ibthu374eq40dia3orpvm2rtada74rvb.apps.googleusercontent.com',
     iosBundleId: 'com.example.fire',
   );
 
@@ -82,7 +90,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '510548844181',
     projectId: 'testing-39754',
     authDomain: 'testing-39754.firebaseapp.com',
+    databaseURL: 'https://testing-39754-default-rtdb.firebaseio.com',
     storageBucket: 'testing-39754.appspot.com',
     measurementId: 'G-CS11ZD2L26',
   );
+
 }
