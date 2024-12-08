@@ -1,21 +1,31 @@
+import 'package:fire/firebase_options.dart';
+import 'package:fire/notification/notification.dart';
 import 'package:fire/provider/auth_provider.dart';
 import 'package:fire/provider/cart_provider.dart';
+import 'package:fire/provider/map_provider.dart';
 import 'package:fire/provider/order_provider.dart';
 import 'package:fire/provider/post_provider.dart';
 import 'package:fire/provider/product_provider.dart';
 import 'package:fire/ui/splashscreen.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+      NotificationRequest().isTokenRefresh();
+
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   await FirebaseAppCheck.instance.activate(
+    webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
     androidProvider: AndroidProvider.playIntegrity,
-    appleProvider: AppleProvider.appAttest,
   );
   runApp(
     MultiProvider(
@@ -25,10 +35,17 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PostProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => MapProvider()),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
+}
+
+@pragma("vm:entry-point")
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  
 }
 
 class MyApp extends StatelessWidget {
@@ -36,9 +53,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SplashScreen(),
+      builder: EasyLoading.init(),
+      home: const SplashScreen(),
     );
   }
 }

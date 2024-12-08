@@ -1,27 +1,27 @@
-import 'package:carousel_slider/carousel_options.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fire/UI/auth/api_services.dart';
-import 'package:fire/firestore/adddatatofirestore.dart';
+import 'package:fire/UI/ui_screens/all_post.dart';
+import 'package:fire/auth/api_services.dart';
+import 'package:fire/notification/notification.dart';
 import 'package:fire/provider/product_provider.dart';
 import 'package:fire/utils/text.dart';
 import 'package:fire/widget/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fire/UI/auth/login.dart';
+import 'package:fire/auth/login.dart';
 import 'package:fire/utils/utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:provider/provider.dart';
 
-class Fetchdatafromfirestore extends StatefulWidget {
-  const Fetchdatafromfirestore({super.key, String? idToken});
+class AdminScreen extends StatefulWidget {
+  const AdminScreen({super.key, String? idToken});
 
   @override
-  State<Fetchdatafromfirestore> createState() => _HomeScreenState();
+  State<AdminScreen> createState() => _AdminScreenState();
 }
 
-class _HomeScreenState extends State<Fetchdatafromfirestore> {
+class _AdminScreenState extends State<AdminScreen> {
   final auth = FirebaseAuth.instance;
   CollectionReference ref = FirebaseFirestore.instance.collection("Posts");
   final fireStore = FirebaseFirestore.instance.collection("Posts").snapshots();
@@ -38,10 +38,13 @@ class _HomeScreenState extends State<Fetchdatafromfirestore> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ProductProvider>(context, listen: true)
+      Provider.of<ProductProvider>(context, listen: false)
           .fetchProducts()
           .then((_) {});
+      NotificationRequest().getTokenInitialize();
     });
+
+    NotificationRequest().flutterPlugin(context);
   }
 
   Future<void> handleRefresh() async {
@@ -71,9 +74,20 @@ class _HomeScreenState extends State<Fetchdatafromfirestore> {
     );
   }
 
+  Widget buildIconColumn(String image, String label) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Image.asset(image, width: 40, height: 40),
+        const SizedBox(height: 8),
+        Text(label,
+            style: GoogleFonts.roboto(fontSize: 12, color: Colors.black)),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    print("Rebuild home screen");
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -157,52 +171,46 @@ class _HomeScreenState extends State<Fetchdatafromfirestore> {
                         children: [
                           text("Featured Products", 20, Colors.black,
                               FontWeight.bold),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
-                            child: text("Show All", 12,
-                                const Color(0xFF9B9B9B), FontWeight.bold),
-                          )
+                          TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => AllPost()));
+                              },
+                              child: text("Show All", 15, Colors.grey,
+                                  FontWeight.w700)),
                         ],
                       ),
                       const SizedBox(height: 20),
                       Consumer<ProductProvider>(
-                        builder: (context, postProvider, child) {
-                          if (postProvider.isLoading) {
-                            return buildShimmerEffect();
-                          }
-                          if (postProvider.error != null) {
-                            return Center(
-                                child: Text("Error: ${postProvider.error}"));
-                          }
-                          if (postProvider.products == null ||
-                              postProvider.products!.isEmpty) {
-                            return const Center(
-                                child: Text("No Products Available"));
-                          }
-                          return buildPostList(postProvider.products!);
-                        },
-                      ),
+                          builder: (context, postProvider, child) {
+                        if (postProvider.isLoading) {
+                          return buildShimmerEffect();
+                        }
+                        if (postProvider.error != null) {
+                          return Center(
+                              child: Text("Error: ${postProvider.error}"));
+                        }
+                        var limitedPost =
+                            postProvider.products?.take(5).toList() ?? [];
+                        if (postProvider.products == null ||
+                            postProvider.products!.isEmpty) {
+                          return const Center(
+                              child: Text("No Products Available"));
+                        }
+                        if (limitedPost.isEmpty) {
+                          return const Center(
+                              child: Text("No Products Available"));
+                        }
+                        return buildPostAdminList(postProvider.products!);
+                      }),
                       const SizedBox(height: 100),
                     ],
                   ),
                 ),
               ),
             ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.black,
-        elevation: 12,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddDataToFirestore()),
-          );
-        },
-        child: const Icon(
-          Icons.post_add,
-          color: Colors.white,
-        ),
-      ),
     );
   }
 }

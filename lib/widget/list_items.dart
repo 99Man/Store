@@ -12,6 +12,15 @@ class CartItem {
   final String title;
   final String price;
   final String imgUrl;
+  final String id;
+  final String? sellerId;
+  int quantity;
 
-  CartItem(this.title, this.price, this.imgUrl);
+  CartItem(
+      {required this.title,
+      required this.price,
+      required this.imgUrl,
+      required this.id,
+      this.sellerId,
+      this.quantity = 1});
 }

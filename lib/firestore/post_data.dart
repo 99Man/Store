@@ -5,18 +5,18 @@ import 'package:provider/provider.dart';
 import 'package:fire/utils/text.dart';
 import 'package:fire/widget/button.dart';
 
-class AddDataToFirestore extends StatefulWidget {
-  const AddDataToFirestore({super.key});
+class PostData extends StatefulWidget {
+  const PostData({super.key});
 
   @override
-  State<AddDataToFirestore> createState() => _AddDataToFirestoreState();
+  State<PostData> createState() => _PostDataState();
 }
 
-class _AddDataToFirestoreState extends State<AddDataToFirestore> {
+class _PostDataState extends State<PostData> {
   @override
   void initState() {
     super.initState();
-    final postProvider = Provider.of<PostProvider>(context, listen: true);
+    final postProvider = Provider.of<PostProvider>(context, listen: false);
     postProvider.clearFields();
   }
 
@@ -63,6 +63,8 @@ class _AddDataToFirestoreState extends State<AddDataToFirestore> {
                   Button(
                     onTap: () async {
                       if (postProvider.areFieldsValid()) {
+                        
+
                         await postProvider.postDataToFirestore();
                       } else {
                         Utilred().fluttertoastmessage("Fill every text field");

@@ -7,15 +7,15 @@ class ProductData {
     if (json['documents'] != null) {
       documents = <Documents>[];
       json['documents'].forEach((v) {
-        documents!.add(new Documents.fromJson(v));
+        documents!.add(Documents.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.documents != null) {
-      data['documents'] = this.documents!.map((v) => v.toJson()).toList();
+    if (documents != null) {
+      data['documents'] = documents!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -31,20 +31,21 @@ class Documents {
 
   Documents.fromJson(Map<String, dynamic> json) {
     name = json['name'];
-    fields =
-        json['fields'] != null ? new Fields.fromJson(json['fields']) : null;
+    fields = json['fields'] != null ? Fields.fromJson(json['fields']) : null;
     createTime = json['createTime'];
     updateTime = json['updateTime'];
   }
 
+  get stringValue => null;
+
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['name'] = this.name;
-    if (this.fields != null) {
-      data['fields'] = this.fields!.toJson();
+    data['name'] = name;
+    if (fields != null) {
+      data['fields'] = fields!.toJson();
     }
-    data['createTime'] = this.createTime;
-    data['updateTime'] = this.updateTime;
+    data['createTime'] = createTime;
+    data['updateTime'] = updateTime;
     return data;
   }
 }
@@ -58,6 +59,7 @@ class Fields {
   Description? companyName;
   Description? country;
   Description? quantity;
+  Description? userId;
 
   Fields(
       {this.description,
@@ -67,56 +69,59 @@ class Fields {
       this.imageUrl,
       this.companyName,
       this.country,
+      this.userId,
       this.quantity});
 
   Fields.fromJson(Map<String, dynamic> json) {
     description = json['description'] != null
-        ? new Description.fromJson(json['description'])
+        ? Description.fromJson(json['description'])
         : null;
-    id = json['id'] != null ? new Description.fromJson(json['id']) : null;
-    price =
-        json['price'] != null ? new Description.fromJson(json['price']) : null;
-    title =
-        json['title'] != null ? new Description.fromJson(json['title']) : null;
+    id = json['id'] != null ? Description.fromJson(json['id']) : null;
+    price = json['price'] != null ? Description.fromJson(json['price']) : null;
+    title = json['title'] != null ? Description.fromJson(json['title']) : null;
     imageUrl = json['image_url'] != null
-        ? new Description.fromJson(json['image_url'])
+        ? Description.fromJson(json['image_url'])
         : null;
     companyName = json['company_name'] != null
-        ? new Description.fromJson(json['company_name'])
+        ? Description.fromJson(json['company_name'])
         : null;
-    country = json['country'] != null
-        ? new Description.fromJson(json['country'])
-        : null;
+    country =
+        json['country'] != null ? Description.fromJson(json['country']) : null;
     quantity = json['quantity'] != null
-        ? new Description.fromJson(json['quantity'])
+        ? Description.fromJson(json['quantity'])
         : null;
+    if (json['userId'] != null) {
+      userId = Description.fromJson(json['userId']);
+    } else {
+      userId = null; // Explicitly set userId to null if it's missing
+    }
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.description != null) {
-      data['description'] = this.description!.toJson();
+    if (description != null) {
+      data['description'] = description!.toJson();
     }
-    if (this.id != null) {
-      data['id'] = this.id!.toJson();
+    if (id != null) {
+      data['id'] = id!.toJson();
     }
-    if (this.price != null) {
-      data['price'] = this.price!.toJson();
+    if (price != null) {
+      data['price'] = price!.toJson();
     }
-    if (this.title != null) {
-      data['title'] = this.title!.toJson();
+    if (title != null) {
+      data['title'] = title!.toJson();
     }
-    if (this.imageUrl != null) {
-      data['image_url'] = this.imageUrl!.toJson();
+    if (imageUrl != null) {
+      data['image_url'] = imageUrl!.toJson();
     }
-    if (this.companyName != null) {
-      data['company_name'] = this.companyName!.toJson();
+    if (companyName != null) {
+      data['company_name'] = companyName!.toJson();
     }
-    if (this.country != null) {
-      data['country'] = this.country!.toJson();
+    if (country != null) {
+      data['country'] = country!.toJson();
     }
-    if (this.quantity != null) {
-      data['quantity'] = this.quantity!.toJson();
+    if (quantity != null) {
+      data['quantity'] = quantity!.toJson();
     }
     return data;
   }
@@ -133,7 +138,7 @@ class Description {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['stringValue'] = this.stringValue;
+    data['stringValue'] = stringValue;
     return data;
   }
 }

@@ -1,5 +1,4 @@
-import 'package:fire/UI/auth/signup.dart';
-import 'package:fire/firestore/fetchdatafromfirestore.dart';
+import 'package:fire/auth/signup.dart';
 import 'package:fire/provider/auth_provider.dart';
 import 'package:fire/utils/utils.dart';
 import 'package:fire/widget/button.dart';
@@ -35,14 +34,9 @@ class _LoginState extends State<Login> {
 
     if (_formkey.currentState!.validate()) {
       try {
-        // Use the AuthProvider to sign in
-        await Provider.of<AuthProvider>(context, listen: true)
-            .signInWithEmailAndPassword(_email.text, _password.text);
+        await Provider.of<AuthProvider>(context, listen: false)
+            .signInWithEmailAndPassword(_email.text, _password.text, context);
         Utilgreen().fluttertoastmessage("Login Successful");
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => Fetchdatafromfirestore()),
-        );
       } catch (error) {
         Utilred().fluttertoastmessage("Authentication failed: $error");
       } finally {
@@ -59,7 +53,6 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-    print("rebuild login");
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),

@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fire/UI/ui_screens/role_selection.dart';
 import 'package:fire/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
@@ -26,39 +26,7 @@ class ApiService {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<UserCredential?> signInWithEmailAndPassword(
-      String email, String password) async {
-    try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      return userCredential;
-    } catch (e) {
-      print("Error signing in with email and password: $e");
-      return null;
-    }
-  }
-
-  Future<UserCredential?> loginWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return null;
-      final GoogleSignInAuthentication? googleAuth =
-          await googleUser.authentication;
-      final cred = GoogleAuthProvider.credential(
-        accessToken: googleAuth?.accessToken,
-        idToken: googleAuth?.idToken,
-      );
-      return await _auth.signInWithCredential(cred);
-    } catch (e) {
-      print(e.toString());
-      Utilred().fluttertoastmessage("Google Sign-in Error : ${e.toString()}");
-    }
-    return null;
-  }
-
-  Future<UserCredential?> signInWithGoogle() async {
+  Future<UserCredential?> signInWithGoogle(BuildContext context) async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
@@ -72,17 +40,36 @@ class ApiService {
         idToken: googleAuth.idToken,
       );
 
-      return await _auth.signInWithCredential(credential);
+      UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+
+      // Check if the user is signing in for the first time
+      if (userCredential.additionalUserInfo!.isNewUser) {
+        // Navigate to role selection screen if it's a new user
+        // ignore: use_build_context_synchronously
+        await _navigateToRoleSelection(context);
+      }
+
+      return userCredential;
     } catch (e) {
       print("Error signing in with Google: $e");
       return null;
     }
   }
 
+  _navigateToRoleSelection(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RoleSelectionScreen(),
+      ),
+    );
+  }
+
   Future<void> logout() async {
     try {
-      await _googleSignIn.signOut();
       await auth.signOut();
+      await _googleSignIn.signOut();
       Utilgreen().fluttertoastmessage("Successfully Logout");
     } catch (error) {
       Utilred().fluttertoastmessage("Logout failed: $error");
@@ -92,24 +79,6 @@ class ApiService {
   Future<void> signOut() async {
     await _auth.signOut();
     await _googleSignIn.signOut();
-  }
-
-  //Uploading Image to firestorage
-
-  //Fetch Data to display data
-  Future<List<Product>> fetchProducts() async {
-    try {
-      final response = await http.get(Uri.parse(apiUrl));
-
-      if (response.statusCode == 200) {
-        List jsonData = jsonDecode(response.body);
-        return jsonData.map((data) => Product.fromJson(data)).toList();
-      } else {
-        throw Exception('Failed to load products');
-      }
-    } catch (e) {
-      throw Exception('Failed to load products: $e');
-    }
   }
 
   // Fetch Data to update Data
@@ -132,41 +101,6 @@ class ApiService {
       return {};
     }
   }
-
-  Future<String?> getAuthToken() async {
-    try {
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        String? token = await user.getIdToken();
-        return token; // This is the authorization token
-      }
-    } catch (e) {
-      print("Error getting token: $e");
-    }
-    return null;
-  }
-
-  Future<String> uploadImageToStorage(File imageFile) async {
-    try {
-      String imageFileName = DateTime.now().millisecondsSinceEpoch.toString();
-      firebase_storage.FirebaseStorage storage =
-          firebase_storage.FirebaseStorage.instance;
-      firebase_storage.Reference ref =
-          storage.ref().child('images/$imageFileName');
-
-      firebase_storage.UploadTask uploadTask = ref.putFile(imageFile);
-      await uploadTask;
-      Utilgreen().fluttertoastmessage("New image uploaded");
-
-      // Get the download URL of the uploaded image
-      return await ref.getDownloadURL();
-    } catch (e) {
-      Utilgreen().fluttertoastmessage("Error uploading image: $e");
-      throw e;
-    }
-  }
-
-  
 }
 
 // Model for Product

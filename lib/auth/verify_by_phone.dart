@@ -1,4 +1,5 @@
-import 'package:fire/UI/ui_screens/otp_screen.dart';
+import 'package:fire/UI/admin_screens/admin_screen.dart';
+import 'package:fire/auth/otp_screen.dart';
 import 'package:fire/utils/text.dart';
 import 'package:fire/utils/utils.dart';
 import 'package:fire/widget/button.dart';
@@ -14,6 +15,7 @@ class VerifyByPhone extends StatefulWidget {
 
 class _VerifyByPhoneState extends State<VerifyByPhone> {
   TextEditingController _phone = TextEditingController();
+  TextEditingController _codeController = TextEditingController();
   final auth = FirebaseAuth.instance;
   bool loading = false;
   @override
@@ -55,7 +57,7 @@ class _VerifyByPhoneState extends State<VerifyByPhone> {
               ),
               Button(
                   loading: loading,
-                  onTap: () {
+                  onTap: () async {
                     if (_phone.text.isEmpty) {
                       Utilred()
                           .fluttertoastmessage("Phone number cannot be empty.");
@@ -64,12 +66,14 @@ class _VerifyByPhoneState extends State<VerifyByPhone> {
                     setState(() {
                       loading = true;
                     });
-                    auth.verifyPhoneNumber(
-                      phoneNumber: _phone.text,
-                      verificationCompleted: (PhoneAuthCredential) async {
+                    await auth.verifyPhoneNumber(
+                      phoneNumber: _phone.text.trim(),
+                      verificationCompleted:
+                          (PhoneAuthCredential credential) async {
                         setState(() {
                           loading = false;
                         });
+                        await auth.signInWithCredential(credential);
                         Utilgreen().fluttertoastmessage(
                             "Phone verification completed automatically");
                       },
@@ -89,7 +93,25 @@ class _VerifyByPhoneState extends State<VerifyByPhone> {
                               error.message ?? "Verification failed.");
                         }
                       },
-                      codeSent: (verificationId, forceResendingToken) {
+                      codeSent:
+                          (String verificationId, int? forceResendingToken) {
+                        showOTPDialogBox(
+                            context: context,
+                            codeController: _codeController,
+                            loading: loading,
+                            onpressed: () async {
+                              PhoneAuthCredential phoneAuth =
+                                  PhoneAuthProvider.credential(
+                                      verificationId: verificationId,
+                                      smsCode: _codeController.text.trim());
+                              await auth.signInWithCredential(phoneAuth);
+                              Navigator.pop(context);
+                              await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AdminScreen()));
+                            });
                         setState(() {
                           loading = false;
                         });
@@ -97,13 +119,6 @@ class _VerifyByPhoneState extends State<VerifyByPhone> {
 
                         Utilgreen()
                             .fluttertoastmessage("OTP sent to ${_phone.text}");
-
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => OtpScreen(
-                                      verificationid: verificationId,
-                                    )));
                       },
                       codeAutoRetrievalTimeout: (verificationId) {
                         setState(() {

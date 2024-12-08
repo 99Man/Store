@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:fire/utils/utils.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,7 +13,7 @@ class PostProvider extends ChangeNotifier {
 
   File? _image;
   File? get image => _image;
-  
+
   final TextEditingController _titleController = TextEditingController();
   TextEditingController get titleController => _titleController;
 
@@ -30,14 +31,14 @@ class PostProvider extends ChangeNotifier {
 
   final TextEditingController _countryController = TextEditingController();
   TextEditingController get countryController => _countryController;
-  setState() {
+
+  void setState() {
     _loading = true;
+    notifyListeners();
   }
 
   void clearFields() {
-    setState() {
-      _loading = false;
-    }
+    _loading = false;
 
     companyController.clear();
     countryController.clear();
@@ -50,10 +51,6 @@ class PostProvider extends ChangeNotifier {
   }
 
   bool areFieldsValid() {
-    setState() {
-      _loading = false;
-    }
-
     return titleController.text.isNotEmpty &&
         descriptionController.text.isNotEmpty &&
         priceController.text.isNotEmpty &&
@@ -80,36 +77,47 @@ class PostProvider extends ChangeNotifier {
 
   Future<String> uploadImageToStorage() async {
     if (_image != null) {
-      String imageFileName = DateTime.now().millisecondsSinceEpoch.toString();
-      firebase_storage.FirebaseStorage storage =
-          firebase_storage.FirebaseStorage.instance;
-      firebase_storage.Reference ref =
-          storage.ref().child('images/$imageFileName');
+      try {
+        String imageFileName = DateTime.now().millisecondsSinceEpoch.toString();
+        firebase_storage.FirebaseStorage storage =
+            firebase_storage.FirebaseStorage.instance;
+        firebase_storage.Reference ref =
+            storage.ref().child('images/$imageFileName');
 
-      firebase_storage.UploadTask uploadTask = ref.putFile(_image!);
-      await uploadTask;
+        firebase_storage.UploadTask uploadTask = ref.putFile(_image!);
+        await uploadTask;
 
-      Utilgreen().fluttertoastmessage("Image is Uploaded");
-      return await ref.getDownloadURL();
+        return await ref.getDownloadURL();
+      } catch (error) {
+        throw Exception('Error uploading image: $error');
+      }
     } else {
       throw Exception('Error: No image selected');
     }
   }
 
   Future<void> postDataToFirestore() async {
+    if (!areFieldsValid()) {
+      Utilred()
+          .fluttertoastmessage("Please fill in all fields and select an image");
+      return;
+    }
+
+    var currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      print('User is authenticated, UID: ${currentUser.uid}');
+    } else {
+      print('User is not authenticated');
+      return; // Ensure the user is authenticated before proceeding
+    }
+
     _loading = true;
     notifyListeners();
 
-    dynamic id = DateTime.now().millisecondsSinceEpoch.toString();
-    final String url =
+    final id = DateTime.now().millisecondsSinceEpoch.toString();
+    String postUrl =
         'https://firestore.googleapis.com/v1/projects/testing-39754/databases/(default)/documents/Posts/';
-    if (_titleController.text.isNotEmpty &&
-        _descriptionController.text.isNotEmpty &&
-        _priceController.text.isNotEmpty &&
-        _quantityController.text.isNotEmpty &&
-        _companyController.text.isNotEmpty &&
-        _countryController.text.isNotEmpty &&
-        _image != null) {}
+
     final body = {
       "fields": {
         "title": {"stringValue": _titleController.text},
@@ -120,25 +128,69 @@ class PostProvider extends ChangeNotifier {
         "country": {"stringValue": _countryController.text},
         "image_url": {"stringValue": await uploadImageToStorage()},
         "id": {"stringValue": id},
-      }
+        "userId": {"stringValue": FirebaseAuth.instance.currentUser!.uid}
+      },
     };
 
     try {
       final response = await http.post(
-        Uri.parse(url),
+        Uri.parse(postUrl),
+        headers: {'Content-Type': 'application/json'},
         body: json.encode(body),
       );
 
       if (response.statusCode == 200) {
-        Utilgreen().fluttertoastmessage("Post successfully added");
-        _titleController.clear();
-        _descriptionController.clear();
-        _priceController.clear();
-        _quantityController.clear();
-        _companyController.clear();
-        _countryController.clear();
+        // Step 2: Update seller's metadata with the new post ID
+        final String sellerUrl =
+            'https://firestore.googleapis.com/v1/projects/testing-39754/databases/(default)/documents/User/${currentUser.uid}';
+
+        final sellerresponse = await http.get(Uri.parse(sellerUrl),
+            headers: {"Content-type": "application/json"});
+        if (sellerresponse.statusCode == 200) {
+          final sellerData = json.decode(sellerresponse.body);
+          List<dynamic> currentPost = [];
+          if (sellerData["fields"]?["posts"]?["arrayValue"]?["values"] !=
+              null) {
+            currentPost =
+                sellerData["fields"]?["posts"]?["arrayValue"]?["values"];
+          }
+          currentPost.add({"stringValue": id});
+          final metadataBody = {
+            "fields": {
+              "role": {"stringValue": "Seller"},
+              "posts": {
+                "arrayValue": {
+                  "values": [
+                    {"stringValue": id}
+                  ]
+                }
+              }
+            }
+          };
+
+          final metadataResponse = await http.patch(
+            Uri.parse(sellerUrl),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode(metadataBody),
+          );
+
+          if (metadataResponse.statusCode == 200) {
+            Utilgreen().fluttertoastmessage("Post successfully added");
+            resetForm();
+          } else {
+            print(metadataResponse.body.toString());
+            Utilred().fluttertoastmessage(
+                "Failed to update seller metadata: ${metadataResponse.body.toString()}");
+          }
+        } else {
+          print(sellerresponse.body.toString());
+          Utilred().fluttertoastmessage(
+              "Failed to update seller metadata ${sellerresponse.body.toString()}");
+        }
       } else {
-        Utilred().fluttertoastmessage("Failed to add post: ${response.body}");
+        print(response.body.toString());
+        Utilred().fluttertoastmessage(
+            "Failed to add post: ${response.body.toString()}");
       }
     } catch (error) {
       Utilred().fluttertoastmessage("Error: $error");
