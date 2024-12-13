@@ -66,7 +66,7 @@
             android:value="high_importance_channel" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAG31gRnPr6tX-xqo6VUxmx6xuG9HtnNVw"/>
+            />
     </application>
 
     <!-- Required to query activities that can process text, see:
